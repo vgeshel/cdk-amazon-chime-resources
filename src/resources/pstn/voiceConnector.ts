@@ -393,9 +393,9 @@ const putStreaming = async (
   console.info(`voiceConnectorId: ${streamingVoiceConnectorId}`);
 
   streamingConfiguration = {
-    StreamingNotificationTargets: streaming.notificationTarget,
+    StreamingNotificationTargets: streaming.notificationTargets,
     Disabled: false,
-    DataRetentionInHours: parseInt(streaming.dataRetention),
+    DataRetentionInHours: streaming.dataRetention,
     ...(streaming.mediaInsightsConfiguration && {
       MediaInsightsConfiguration: {
         Disabled: streaming.mediaInsightsConfiguration.disabled,
