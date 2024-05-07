@@ -147,35 +147,57 @@ export const CreateVoiceConnector = async (
   }
   console.log(`Voice Connector Created: ${voiceConnectorId}`);
 
-  if (props.origination) {
-    await putOrigination(voiceConnectorId, props.origination);
-  }
-
-  if (props.termination) {
-    await putTermination(voiceConnectorId, props.termination);
-  }
-
-  if (props.streaming) {
-    await putStreaming(voiceConnectorId, props.streaming);
-  }
-
-  if (props.logging) {
-    await putLogging(voiceConnectorId, props.logging);
-  }
-
   try {
-    await ssmClient.send(
-      new PutParameterCommand({
-        Name: "/chime/voiceConnector" + uid,
-        Value: voiceConnectorId,
-        Description: "Voice Connector ID",
-        Overwrite: true,
-        Type: "String",
-      })
-    );
+    if (props.origination) {
+      await putOrigination(voiceConnectorId, props.origination);
+    }
+
+    if (props.termination) {
+      await putTermination(voiceConnectorId, props.termination);
+    }
+
+    if (props.streaming) {
+      await putStreaming(voiceConnectorId, props.streaming);
+    }
+
+    if (props.logging) {
+      await putLogging(voiceConnectorId, props.logging);
+    }
+
+    try {
+      await ssmClient.send(
+        new PutParameterCommand({
+          Name: "/chime/voiceConnector" + uid,
+          Value: voiceConnectorId,
+          Description: "Voice Connector ID",
+          Overwrite: true,
+          Type: "String",
+        })
+      );
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error);
+        throw error;
+      }
+    }
   } catch (error) {
     if (error instanceof Error) {
-      console.error(error);
+      console.error(
+        `Deleting Voice Connector: ${voiceConnectorId} due to error`
+      );
+      try {
+        await chimeSDKVoiceClient.send(
+          new DeleteVoiceConnectorCommand({
+            VoiceConnectorId: voiceConnectorId,
+          })
+        );
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(
+            `Error deleting Voice Connector: ${voiceConnectorId}: ${error}`
+          );
+        }
+      }
       throw error;
     }
   }
@@ -414,7 +436,7 @@ const putStreaming = async (
         ConfigurationArn: streaming.mediaInsightsConfiguration.configurationArn,
       },
     }),
-  };
+  } satisfies StreamingConfiguration;
   console.log(
     `streamingConfiguration:  ${JSON.stringify(streamingConfiguration)}`
   );
@@ -428,7 +450,7 @@ const putStreaming = async (
     );
   } catch (error) {
     if (error instanceof Error) {
-      console.error(error);
+      console.error(`Error setting streaming configuration: ${error}`);
       throw error;
     }
   }
