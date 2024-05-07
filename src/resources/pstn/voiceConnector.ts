@@ -86,7 +86,7 @@ enum NotificationTargetType {
 
 interface StreamingProps {
   enabled: boolean;
-  dataRetention: string;
+  dataRetention: number | string;
   notificationTargets: NotificationTargetType[];
   mediaInsightsConfiguration: MediaInsightsConfiguration;
 }
@@ -405,9 +405,9 @@ const putStreaming = async (
           NotificationTarget: target,
         } satisfies StreamingNotificationTarget;
       }
-    ),
+    ) satisfies Array<StreamingNotificationTarget>,
     Disabled: false,
-    DataRetentionInHours: parseInt(streaming.dataRetention),
+    DataRetentionInHours: parseInt(String(streaming.dataRetention)),
     ...(streaming.mediaInsightsConfiguration && {
       MediaInsightsConfiguration: {
         Disabled: streaming.mediaInsightsConfiguration.disabled,
