@@ -191,10 +191,10 @@ export const CreateVoiceConnector = async (
             VoiceConnectorId: voiceConnectorId,
           })
         );
-      } catch (error) {
-        if (error instanceof Error) {
+      } catch (deleteError) {
+        if (deleteError instanceof Error) {
           console.error(
-            `Error deleting Voice Connector: ${voiceConnectorId}: ${error}`
+            `Error deleting Voice Connector: ${voiceConnectorId}: ${deleteError}`
           );
         }
       }
