@@ -99,6 +99,11 @@ export class PSTNResources extends Construct {
             }:parameter/chime/*`,
             Effect: 'Allow',
           },
+          {
+            Action: ['sqs:*'],
+            Resource: '*',
+            Effect: 'Allow',
+          },
         ],
       },
     );

@@ -16,34 +16,34 @@ import {
   LoggingConfiguration,
   ListPhoneNumbersCommand,
   StreamingNotificationTarget,
-} from "@aws-sdk/client-chime-sdk-voice";
+} from '@aws-sdk/client-chime-sdk-voice';
 import {
   CloudWatchLogsClient,
   PutResourcePolicyCommand,
-} from "@aws-sdk/client-cloudwatch-logs";
+} from '@aws-sdk/client-cloudwatch-logs';
 import {
   SSMClient,
   DeleteParameterCommand,
   GetParameterCommand,
   GetParameterCommandOutput,
   PutParameterCommand,
-} from "@aws-sdk/client-ssm";
+} from '@aws-sdk/client-ssm';
 import {
   MediaInsightsConfiguration,
   Protocol,
-} from "../../pstn/voiceConnector";
+} from '../../pstn/voiceConnector';
 
 enum VoiceConnectorRegion {
-  US_EAST_1 = "us-east-1",
-  US_WEST_2 = "us-west-2",
-  CA_CENTRAL_1 = "ca-central-1",
-  AP_NORTHEAST_1 = "ap-northeast-1",
-  AP_NORTHEAST_2 = "ap-northeast-2",
-  AP_SOUTHEAST_1 = "ap-southeast-1",
-  AP_SOUTHEAST_2 = "ap-southeast-2",
-  EU_WEST_1 = "eu-west-1",
-  EU_WEST_2 = "eu-west-2",
-  EU_CENTRAL_1 = "eu-central-1",
+  US_EAST_1 = 'us-east-1',
+  US_WEST_2 = 'us-west-2',
+  CA_CENTRAL_1 = 'ca-central-1',
+  AP_NORTHEAST_1 = 'ap-northeast-1',
+  AP_NORTHEAST_2 = 'ap-northeast-2',
+  AP_SOUTHEAST_1 = 'ap-southeast-1',
+  AP_SOUTHEAST_2 = 'ap-southeast-2',
+  EU_WEST_1 = 'eu-west-1',
+  EU_WEST_2 = 'eu-west-2',
+  EU_CENTRAL_1 = 'eu-central-1',
 }
 const chimeSDKVoiceClient = new ChimeSDKVoiceClient({
   region: process.env.AWS_REGION,
@@ -79,9 +79,9 @@ interface TerminationProps {
 }
 
 enum NotificationTargetType {
-  EVENTBRIDGE = "EventBridge",
-  SNS = "SNS",
-  SQS = "SQS",
+  EVENTBRIDGE = 'EventBridge',
+  SNS = 'SNS',
+  SQS = 'SQS',
 }
 
 interface StreamingProps {
@@ -108,7 +108,7 @@ export interface CreateVoiceConnectorProps {
 
 export const CreateVoiceConnector = async (
   uid: string,
-  props: CreateVoiceConnectorProps
+  props: CreateVoiceConnectorProps,
 ) => {
   console.log(`Creating Voice Connector: ${uid}`);
   console.log(`Create Voice Connector Props: ${JSON.stringify(props)}`);
@@ -118,17 +118,17 @@ export const CreateVoiceConnector = async (
     AwsRegion: props.region,
   } satisfies CreateVoiceConnectorCommandInput;
   console.log(
-    `createVoiceConnectorParams: ${JSON.stringify(createVoiceConnectorParams)}`
+    `createVoiceConnectorParams: ${JSON.stringify(createVoiceConnectorParams)}`,
   );
 
   try {
     createVoiceConnectorResponse = await chimeSDKVoiceClient.send(
-      new CreateVoiceConnectorCommand(createVoiceConnectorParams)
+      new CreateVoiceConnectorCommand(createVoiceConnectorParams),
     );
     console.log(
       `createVoiceConnectorResponse: ${JSON.stringify(
-        createVoiceConnectorResponse
-      )}`
+        createVoiceConnectorResponse,
+      )}`,
     );
     if (
       createVoiceConnectorResponse.VoiceConnector &&
@@ -137,7 +137,7 @@ export const CreateVoiceConnector = async (
       voiceConnectorId =
         createVoiceConnectorResponse.VoiceConnector?.VoiceConnectorId;
     } else {
-      throw new Error("Voice Connector failed to create");
+      throw new Error('Voice Connector failed to create');
     }
   } catch (error) {
     if (error instanceof Error) {
@@ -167,12 +167,12 @@ export const CreateVoiceConnector = async (
     try {
       await ssmClient.send(
         new PutParameterCommand({
-          Name: "/chime/voiceConnector" + uid,
+          Name: '/chime/voiceConnector' + uid,
           Value: voiceConnectorId,
-          Description: "Voice Connector ID",
+          Description: 'Voice Connector ID',
           Overwrite: true,
-          Type: "String",
-        })
+          Type: 'String',
+        }),
       );
     } catch (error) {
       if (error instanceof Error) {
@@ -183,18 +183,18 @@ export const CreateVoiceConnector = async (
   } catch (error) {
     if (error instanceof Error) {
       console.error(
-        `Deleting Voice Connector: ${voiceConnectorId} due to error`
+        `Deleting Voice Connector: ${voiceConnectorId} due to error`,
       );
       try {
         await chimeSDKVoiceClient.send(
           new DeleteVoiceConnectorCommand({
             VoiceConnectorId: voiceConnectorId,
-          })
+          }),
         );
       } catch (deleteError) {
         if (deleteError instanceof Error) {
           console.error(
-            `Error deleting Voice Connector: ${voiceConnectorId}: ${deleteError}`
+            `Error deleting Voice Connector: ${voiceConnectorId}: ${deleteError}`,
           );
         }
       }
@@ -219,7 +219,7 @@ export interface UpdateVoiceConnectorProps {
 
 export const UpdateVoiceConnector = async (
   uid: string,
-  props: UpdateVoiceConnectorProps
+  props: UpdateVoiceConnectorProps,
 ) => {
   console.log(`Updating Voice Connector: ${uid}`);
   console.log(`Updating Voice Connector Props: ${JSON.stringify(props)}`);
@@ -229,12 +229,12 @@ export const UpdateVoiceConnector = async (
     AwsRegion: props.region,
   };
   console.log(
-    `updateVoiceConnectorParams: ${JSON.stringify(updateVoiceConnectorParams)}`
+    `updateVoiceConnectorParams: ${JSON.stringify(updateVoiceConnectorParams)}`,
   );
 
   try {
     getParameterCommandOutput = await ssmClient.send(
-      new GetParameterCommand({ Name: "/chime/voiceConnector" + uid })
+      new GetParameterCommand({ Name: '/chime/voiceConnector' + uid }),
     );
     if (
       getParameterCommandOutput.Parameter &&
@@ -272,7 +272,7 @@ export const UpdateVoiceConnector = async (
 export const DeleteVoiceConnector = async (uid: string) => {
   try {
     getParameterCommandOutput = await ssmClient.send(
-      new GetParameterCommand({ Name: "/chime/voiceConnector" + uid })
+      new GetParameterCommand({ Name: '/chime/voiceConnector' + uid }),
     );
     if (
       getParameterCommandOutput.Parameter &&
@@ -290,12 +290,12 @@ export const DeleteVoiceConnector = async (uid: string) => {
   try {
     const phoneNumbersAssociated = await chimeSDKVoiceClient.send(
       new ListPhoneNumbersCommand({
-        FilterName: "VoiceConnectorId",
+        FilterName: 'VoiceConnectorId',
         FilterValue: voiceConnectorId,
-      })
+      }),
     );
     console.log(
-      `phoneNumbers to disassociate:  ${JSON.stringify(phoneNumbersAssociated)}`
+      `phoneNumbers to disassociate:  ${JSON.stringify(phoneNumbersAssociated)}`,
     );
     if (
       phoneNumbersAssociated.PhoneNumbers &&
@@ -309,7 +309,7 @@ export const DeleteVoiceConnector = async (uid: string) => {
         new DisassociatePhoneNumbersFromVoiceConnectorCommand({
           VoiceConnectorId: voiceConnectorId,
           E164PhoneNumbers: phoneNumbersToDisassociate,
-        })
+        }),
       );
     }
   } catch (error) {
@@ -323,13 +323,13 @@ export const DeleteVoiceConnector = async (uid: string) => {
     deleteVoiceConnectorResponse = await chimeSDKVoiceClient.send(
       new DeleteVoiceConnectorCommand({
         VoiceConnectorId: voiceConnectorId,
-      })
+      }),
     );
     console.log(
-      `Delete Voice Connector Response: ${deleteVoiceConnectorResponse}`
+      `Delete Voice Connector Response: ${deleteVoiceConnectorResponse}`,
     );
     await ssmClient.send(
-      new DeleteParameterCommand({ Name: "/chime/voiceConnector" + uid })
+      new DeleteParameterCommand({ Name: '/chime/voiceConnector' + uid }),
     );
   } catch (error) {
     if (error instanceof Error) {
@@ -347,7 +347,7 @@ const putOrigination = async (
     port: string;
     priority: string;
     weight: string;
-  }[]
+  }[],
 ) => {
   console.log(`originations:  ${JSON.stringify(originations)}`);
   console.info(`voiceConnectorId: ${originationVoiceConnectorId}`);
@@ -370,7 +370,7 @@ const putOrigination = async (
           Routes: routes,
           Disabled: false,
         },
-      })
+      }),
     );
   } catch (error) {
     if (error instanceof Error) {
@@ -386,7 +386,7 @@ const putTermination = async (
     callingRegions: string[];
     terminationCidrs: string[];
     cpsLimit: string;
-  }
+  },
 ) => {
   console.log(`termination:  ${JSON.stringify(termination)}`);
   console.info(`voiceConnectorId: ${terminationVoiceConnectorId}`);
@@ -396,14 +396,14 @@ const putTermination = async (
     CpsLimit: parseInt(termination.cpsLimit),
   };
   console.log(
-    `terminationConfiguration:  ${JSON.stringify(terminationConfiguration)}`
+    `terminationConfiguration:  ${JSON.stringify(terminationConfiguration)}`,
   );
   try {
     await chimeSDKVoiceClient.send(
       new PutVoiceConnectorTerminationCommand({
         VoiceConnectorId: terminationVoiceConnectorId,
         Termination: terminationConfiguration,
-      })
+      }),
     );
   } catch (error) {
     if (error instanceof Error) {
@@ -415,7 +415,7 @@ const putTermination = async (
 
 const putStreaming = async (
   streamingVoiceConnectorId: string,
-  streaming: StreamingProps
+  streaming: StreamingProps,
 ) => {
   console.log(`streaming:  ${JSON.stringify(streaming)}`);
   console.info(`voiceConnectorId: ${streamingVoiceConnectorId}`);
@@ -426,7 +426,7 @@ const putStreaming = async (
         return {
           NotificationTarget: target,
         } satisfies StreamingNotificationTarget;
-      }
+      },
     ) satisfies Array<StreamingNotificationTarget>,
     Disabled: false,
     DataRetentionInHours: parseInt(String(streaming.dataRetention)),
@@ -438,7 +438,7 @@ const putStreaming = async (
     }),
   } satisfies StreamingConfiguration;
   console.log(
-    `streamingConfiguration:  ${JSON.stringify(streamingConfiguration)}`
+    `streamingConfiguration:  ${JSON.stringify(streamingConfiguration)}`,
   );
 
   try {
@@ -446,7 +446,7 @@ const putStreaming = async (
       new PutVoiceConnectorStreamingConfigurationCommand({
         VoiceConnectorId: streamingVoiceConnectorId,
         StreamingConfiguration: streamingConfiguration,
-      })
+      }),
     );
   } catch (error) {
     if (error instanceof Error) {
@@ -458,30 +458,30 @@ const putStreaming = async (
 
 const putLogging = async (
   loggingVoiceConnectorId: string,
-  logging: LoggingProps
+  logging: LoggingProps,
 ) => {
   console.log(`logging:  ${JSON.stringify(logging)}`);
   console.info(`voiceConnectorId: ${loggingVoiceConnectorId}`);
 
   try {
-    console.log("Updating Resource Policy");
+    console.log('Updating Resource Policy');
     const policyDocument = JSON.stringify({
-      Version: "2012-10-17",
+      Version: '2012-10-17',
       Statement: [
         {
-          Sid: "AWSLogDeliveryWrite",
-          Effect: "Allow",
-          Principal: { Service: "delivery.logs.amazonaws.com" },
-          Action: ["logs:CreateLogStream", "logs:PutLogEvents"],
-          Resource: ["*"],
+          Sid: 'AWSLogDeliveryWrite',
+          Effect: 'Allow',
+          Principal: { Service: 'delivery.logs.amazonaws.com' },
+          Action: ['logs:CreateLogStream', 'logs:PutLogEvents'],
+          Resource: ['*'],
         },
       ],
     });
     await logClient.send(
       new PutResourcePolicyCommand({
-        policyName: "msk",
+        policyName: 'msk',
         policyDocument: policyDocument,
-      })
+      }),
     );
   } catch (error) {
     if (error instanceof Error) {
@@ -502,7 +502,7 @@ const putLogging = async (
       new PutVoiceConnectorLoggingConfigurationCommand({
         VoiceConnectorId: loggingVoiceConnectorId,
         LoggingConfiguration: loggingConfiguration,
-      })
+      }),
     );
   } catch (error) {
     if (error instanceof Error) {
